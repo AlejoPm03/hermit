@@ -1,0 +1,2 @@
+# Keeps short calls on one line
+use_small_heuristics = "Max"

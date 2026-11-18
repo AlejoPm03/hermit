@@ -1,0 +1,9 @@
+[workspace]
+members = ["burner", "host", "protocol"]
+# The burner is built per target, see host/src/flash.rs
+default-members = ["host"]
+resolver = "3"
+
+[profile.release]
+lto = true
+strip = true

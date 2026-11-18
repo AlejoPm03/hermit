@@ -1,0 +1,11 @@
+[package]
+name = "burner"
+version = "0.1.0"
+edition = "2024"
+description = "Flashes the disk a machine runs from with an image the PC sends over TCP"
+
+[dependencies]
+anyhow = "1"
+flate2 = "1"
+nix = { version = "0.32", features = ["fs", "mount", "process", "reboot", "signal"] }
+protocol = { path = "../protocol" }

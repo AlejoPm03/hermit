@@ -1,0 +1,6 @@
+# Static binaries for 32 and 64-bit ARM, linked without a cross toolchain
+[target.armv7-unknown-linux-musleabihf]
+linker = "rust-lld"
+
+[target.aarch64-unknown-linux-musl]
+linker = "rust-lld"
