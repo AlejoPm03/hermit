@@ -28,6 +28,7 @@ On the machine to flash:
 - systemd
 - SSH access with `sudo` that doesn't ask for a password, as on Raspberry Pi OS
 - TCP port 8099 reachable from your computer
+- A wired network: Hermit stops every process, including the one that keeps Wi-Fi connected
 
 On your computer: Rust, `ssh`, and `sshpass` if you log in with a password.
 
