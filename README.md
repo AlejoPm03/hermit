@@ -34,12 +34,10 @@ On your computer: Rust, `ssh`, and `sshpass` if you log in with a password.
 
 ## How to use
 
-Build Hermit and the burner for the machine's CPU:
+Build Hermit:
 
 ```sh
 cargo build --release
-cargo build --release -p burner --target aarch64-unknown-linux-musl      # 64-bit system
-cargo build --release -p burner --target armv7-unknown-linux-musleabihf  # 32-bit system
 ```
 
 Flash a raw `.img` image. Unpack `.xz` or `.zip` images first.
@@ -58,4 +56,4 @@ Other options:
 
 - `--require-marker` only flashes machines that have `/etc/allow-reflash`, and creates it again on
   the new system. Useful for test labs, so the wrong machine is never flashed.
-- `--burner <path>` uses that burner binary instead of the one cargo built.
+- `--burner <path>` uses that burner binary instead of the built-in one.

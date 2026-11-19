@@ -13,21 +13,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - run: rustup toolchain install && rustup target add x86_64-unknown-linux-musl
-      - run: cargo build --release -p hermit --target x86_64-unknown-linux-musl
-      - run: cargo build --release -p burner --target armv7-unknown-linux-musleabihf
-      - run: cargo build --release -p burner --target aarch64-unknown-linux-musl
-      # Laid out like cargo's target directory, where hermit looks for the burners
-      - run: |
-          mkdir -p hermit/release
-          cp target/x86_64-unknown-linux-musl/release/hermit hermit/release/
-          for triple in armv7-unknown-linux-musleabihf aarch64-unknown-linux-musl; do
-            mkdir -p hermit/$triple/release
-            cp target/$triple/release/burner hermit/$triple/release/
-          done
-          tar -czf hermit-x86_64-linux.tar.gz hermit
+      - run: cargo build --release --target x86_64-unknown-linux-musl
       - uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: hermit-x86_64-linux.tar.gz
+          file: target/x86_64-unknown-linux-musl/release/hermit
+          asset_name: hermit-x86_64-linux
           tag: ${{ github.ref }}
           overwrite: true

@@ -22,7 +22,7 @@ struct Args {
     /// SSH password, sent with sshpass. Without it ssh uses keys
     #[arg(long, env = "SSHPASS")]
     password: Option<String>,
-    /// The burner binary, instead of the one cargo built for the board's CPU
+    /// The burner binary, instead of the built-in one for the board's CPU
     #[arg(long)]
     burner: Option<PathBuf>,
     /// Refuse boards without /etc/allow-reflash, and create it again on the new image

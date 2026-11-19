@@ -1,6 +1,6 @@
 [workspace]
 members = ["burner", "host", "protocol"]
-# The burner is built per target, see host/src/flash.rs
+# host/build.rs builds the burner for each board CPU
 default-members = ["host"]
 resolver = "3"
 

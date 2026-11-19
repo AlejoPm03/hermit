@@ -1,7 +1,6 @@
 //! Runs commands on the target with the system's ssh, so the user's keys and config just work
 
-use std::fs::File;
-use std::path::Path;
+use std::io::Write;
 use std::process::{Command, Stdio};
 
 use anyhow::{Context, Result, ensure};
@@ -21,24 +20,30 @@ impl Ssh {
     }
 
     pub fn run(&self, command: &str) -> Result<String> {
-        self.run_with_input(command, Stdio::null())
+        self.run_with_input(command, &[])
     }
 
-    /// Writes local to remote as root
-    pub fn put(&self, local: &Path, remote: &str) -> Result<()> {
-        let file = File::open(local).with_context(|| format!("cannot open {}", local.display()))?;
-        self.run_with_input(&format!("sudo tee {remote} >/dev/null"), file.into())?;
+    /// Writes data to remote as root
+    pub fn put(&self, data: &[u8], remote: &str) -> Result<()> {
+        self.run_with_input(&format!("sudo tee {remote} >/dev/null"), data)?;
         Ok(())
     }
 
-    fn run_with_input(&self, command: &str, stdin: Stdio) -> Result<String> {
-        let output = self
+    fn run_with_input(&self, command: &str, input: &[u8]) -> Result<String> {
+        let mut ssh = self
             .ssh()
             .arg(&self.target)
             .arg(command)
-            .stdin(stdin)
-            .output()
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .spawn()
             .context("cannot run ssh")?;
+        if let Some(mut stdin) = ssh.stdin.take() {
+            // Fails when the command exits early, its status says why
+            let _ = stdin.write_all(input);
+        }
+        let output = ssh.wait_with_output().context("cannot run ssh")?;
         let stderr = String::from_utf8_lossy(&output.stderr);
         ensure!(
             output.status.success(),

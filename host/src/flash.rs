@@ -3,7 +3,7 @@
 use std::fs::{self, File};
 use std::io::{self, BufRead, BufReader, Write};
 use std::net::{Shutdown, TcpStream};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::sync::mpsc::{Receiver, RecvTimeoutError, channel};
 use std::thread::{self, sleep};
 use std::time::{Duration, Instant};
@@ -34,8 +34,10 @@ pub fn flash(ssh: &Ssh, image: &Path, burner: Option<&Path>, require_marker: boo
         check_marker(ssh)?;
     }
     let burner = match burner {
-        Some(burner) => burner.to_path_buf(),
-        None => find_burner(&ssh.run("uname -m")?)?,
+        Some(burner) => {
+            fs::read(burner).with_context(|| format!("cannot read {}", burner.display()))?
+        }
+        None => built_in_burner(&ssh.run("uname -m")?)?.to_vec(),
     };
     let old_boot = boot_id(ssh)?;
 
@@ -69,23 +71,19 @@ fn check_marker(ssh: &Ssh) -> Result<()> {
     Ok(())
 }
 
-/// The burner cargo built for the target's CPU, as uname -m names it
-fn find_burner(machine: &str) -> Result<PathBuf> {
-    let triple = match machine {
-        "armv7l" => "armv7-unknown-linux-musleabihf",
-        "aarch64" => "aarch64-unknown-linux-musl",
-        _ => bail!("no burner target for {machine}"),
-    };
-    // Cargo puts cross builds next to this binary's: target/<triple>/release
-    let exe = std::env::current_exe().context("cannot find this binary")?;
-    let target_dir =
-        exe.parent().and_then(Path::parent).context("cannot find cargo's target directory")?;
-    let burner = target_dir.join(triple).join("release/burner");
-    ensure!(
-        burner.exists(),
-        "no burner built for {machine}, build it with: cargo build --release -p burner --target {triple}"
-    );
-    Ok(burner)
+/// The burner build.rs built for the target's CPU, as uname -m names it
+fn built_in_burner(machine: &str) -> Result<&'static [u8]> {
+    match machine {
+        "armv7l" => Ok(include_bytes!(concat!(
+            env!("OUT_DIR"),
+            "/burner/armv7-unknown-linux-musleabihf/release/burner"
+        ))),
+        "aarch64" => Ok(include_bytes!(concat!(
+            env!("OUT_DIR"),
+            "/burner/aarch64-unknown-linux-musl/release/burner"
+        ))),
+        _ => bail!("no burner for {machine}"),
+    }
 }
 
 /// The disk the target runs from: SD card, USB or NVMe
