@@ -10,6 +10,10 @@ to take the card out of the device.
 It was inspired by balena's [takeover](https://github.com/balena-os/takeover), but it's simpler and
 can write any image you give it.
 
+> [!WARNING]
+> Hermit is a development tool, and it can fail. If the kernel decides to write to the SD card
+> while the image is going on or you lose connection, the new system ends up corrupted. Always keep a card reader nearby!
+
 ## How it works
 
 1. Hermit connects to the machine over SSH, uploads a small burner into RAM and starts it.
