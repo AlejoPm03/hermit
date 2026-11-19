@@ -22,12 +22,20 @@ use crate::log::log;
 const NONE: Option<&str> = None;
 
 pub fn prepare() -> Result<()> {
-    log!("turning swap off, reboot 10s after a kernel panic");
+    log!("preparing the system");
+
     // If PID 1 dies the kernel panics: reboot instead of hanging
     fs::write("/proc/sys/kernel/panic", "10").context("cannot set kernel.panic")?;
+
+    // Small write cache, so the progress is realistic
+    fs::write("/proc/sys/vm/dirty_background_bytes", "16777216")
+        .context("cannot set vm.dirty_background_bytes")?;
+    fs::write("/proc/sys/vm/dirty_bytes", "67108864").context("cannot set vm.dirty_bytes")?;
+
     // The swap file is on the disk
     let status = Command::new("swapoff").arg("-a").status().context("cannot run swapoff")?;
     ensure!(status.success(), "swapoff -a failed: {status}");
+
     sync();
     Ok(())
 }
